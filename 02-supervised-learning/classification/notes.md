@@ -122,3 +122,118 @@ $$\text{Prediction Bias} = \frac{\sum \text{Predicted Values}}{\sum \text{Actual
 **Example:** If your model predicts an average spam probability of 0.8 but the actual spam rate is 0.2, you have a bias of 4.0 (significant overestimation).
 
 **How to fix:** If bias exists, you can adjust the decision threshold, retrain the model with class weighting, or collect more balanced training data.
+
+## F1-Score
+
+The **F1-Score** is the harmonic mean of precision and recall, providing a single metric that balances both:
+
+$$\text{F1} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$$
+
+**Why harmonic mean?** It penalizes extreme imbalances. If either precision or recall is very low, F1 will also be low.
+
+**Example calculation:**
+- Precision = 0.8, Recall = 0.6
+- F1 = 2 × (0.8 × 0.6) / (0.8 + 0.6) = 2 × 0.48 / 1.4 = **0.686**
+
+**When to use F1:**
+- When you need a single metric that balances precision and recall
+- When dealing with imbalanced datasets
+- When false positives and false negatives are equally costly
+
+---
+
+## Multi-Class Classification
+
+When dealing with more than two classes, we extend binary classification techniques:
+
+### One-vs-All (One-vs-Rest)
+
+Train **K separate binary classifiers** (one for each class):
+- Class 1 vs All Others
+- Class 2 vs All Others
+- ... etc.
+
+**Prediction:** Choose the class with highest confidence score.
+
+```
+Input: [features]
+    │
+    ├── Classifier 1: Is it Class A? → Score: 0.7
+    ├── Classifier 2: Is it Class B? → Score: 0.2
+    └── Classifier 3: Is it Class C? → Score: 0.5
+    
+    Prediction: Class A (highest score)
+```
+
+### One-vs-One
+
+Train a classifier for **every pair of classes**: $\frac{K(K-1)}{2}$ classifiers.
+
+**Prediction:** Voting—each classifier votes for one class, majority wins.
+
+### Multi-Class Metrics
+
+For multi-class problems, metrics can be calculated in different ways:
+
+| Averaging | Description |
+|-----------|-------------|
+| **Macro** | Average metric across all classes (treats all classes equally) |
+| **Weighted** | Average weighted by class frequency |
+| **Micro** | Calculate globally (aggregate TPs, FPs, FNs from all classes) |
+
+```python
+from sklearn.metrics import precision_recall_fscore_support
+
+# Macro average (all classes equal weight)
+precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average='macro')
+
+# Weighted average (by class frequency)
+precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_pred, average='weighted')
+```
+
+### Confusion Matrix for Multi-Class
+
+```
+              Predicted
+            A    B    C
+Actual  A [ 50   2    3 ]
+        B [  1  45    4 ]
+        C [  2   3   40 ]
+
+Diagonal = Correct predictions
+Off-diagonal = Errors (shows which classes get confused)
+```
+
+---
+
+## Worked Example: Calculating All Metrics
+
+**Given confusion matrix:**
+```
+                Predicted
+              Positive  Negative
+Actual  Positive    80       20    (TP=80, FN=20)
+        Negative    10       90    (FP=10, TN=90)
+```
+
+**Calculations:**
+
+| Metric | Formula | Calculation | Result |
+|--------|---------|-------------|--------|
+| **Accuracy** | (TP+TN)/(All) | (80+90)/200 | **0.85** |
+| **Precision** | TP/(TP+FP) | 80/(80+10) | **0.89** |
+| **Recall** | TP/(TP+FN) | 80/(80+20) | **0.80** |
+| **F1-Score** | 2×P×R/(P+R) | 2×0.89×0.80/1.69 | **0.84** |
+| **FPR** | FP/(FP+TN) | 10/(10+90) | **0.10** |
+
+---
+
+## Quick Reference
+
+| Metric | What It Measures | Optimize When... |
+|--------|------------------|------------------|
+| **Accuracy** | Overall correctness | Classes are balanced |
+| **Precision** | Quality of positive predictions | FP is costly (spam filter) |
+| **Recall** | Coverage of positives | FN is costly (disease detection) |
+| **F1-Score** | Balance of P and R | Need single balanced metric |
+| **ROC-AUC** | Overall model quality | Comparing models |
