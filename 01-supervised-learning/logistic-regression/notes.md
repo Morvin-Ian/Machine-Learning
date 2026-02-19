@@ -145,6 +145,30 @@ $$L = -\frac{1}{m}\sum_{i=1}^{m}\sum_{k=1}^{K}y_{i,k}\log p(y=k\mid x^{(i)})$$
 - When computing log-loss, use stable expressions to avoid log(0). For example compute logits first and use the log-sum-exp trick when implementing softmax and cross-entropy.
 - For sigmoid-based log loss, clip predictions to a small epsilon (e.g., 1e-15) before taking log, or compute loss from logits directly to preserve stability.
 
+**Sklearn example with decision boundary visualization:**
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+
+# simple synthetic 2D dataset
+np.random.seed(42)
+X = np.vstack([np.random.randn(50,2) + [2,2], np.random.randn(50,2) + [-2,-2]])
+y = np.array([1]*50 + [0]*50)
+
+clf = LogisticRegression(solver='liblinear').fit(X, y)
+
+# grid for plotting
+xx, yy = np.meshgrid(np.linspace(-5,5,200), np.linspace(-5,5,200))
+Z = clf.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+
+plt.contourf(xx, yy, Z, alpha=0.2)
+plt.scatter(X[:,0], X[:,1], c=y, edgecolor='k')
+plt.title('Logistic Regression decision boundary')
+plt.show()
+```
+
 ### Class Imbalance and Calibration
 - If classes are imbalanced, consider `class_weight` (or sample weighting), oversampling the minority class, or using metrics like precision-recall AUC and F1 instead of accuracy.
 - For probability calibration (when probabilities themselves must be well-calibrated), use Platt scaling or isotonic regression (e.g., `CalibratedClassifierCV` in scikit-learn).

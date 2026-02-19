@@ -5,10 +5,21 @@
 Large Language Models are neural models (usually transformer-based) trained on large-scale text corpora to model language. They predict tokens given context and produce rich contextual representations used for generation, understanding, and downstream tasks.
 
 ## Core Architecture: Transformer
-- **Self-attention:** Each token attends to others using queries, keys, and values. Attention weights are computed by scaled dot-product and allow modeling of long-range dependencies efficiently.
-- **Multi-head attention:** Multiple parallel attention heads let the model capture different relationships.
-- **Feed-forward layers:** Apply position-wise nonlinear transforms.
-- **Residual connections & normalization:** Improve gradient flow and stability.
+- **Self-attention:** Each token attends to others using queries, keys, and values. Attention weights are computed by scaled dot‑product and allow modeling of long‑range dependencies efficiently.
+
+  **Scaled dot‑product attention (pseudo‑code):**
+  ```python
+  import torch
+  def attention(Q, K, V):
+      # Q, K, V: [seq_len, d]
+      scores = torch.matmul(Q, K.T) / torch.sqrt(torch.tensor(Q.size(-1), dtype=torch.float32))
+      weights = torch.softmax(scores, dim=-1)  # [seq_len, seq_len]
+      return torch.matmul(weights, V), weights
+  ```
+
+- **Multi-head attention:** Several attention blocks in parallel; each head has its own Q/K/V projections. Concatenate head outputs and project again.
+- **Feed-forward layers:** Position-wise MLPs applied after attention blocks, usually with ReLU or GELU activation.
+- **Residual connections & normalization:** Add input to output of sub-layer (`x + sublayer(x)`) and apply layer normalization; improves gradient flow and stabilizes training.
 
 ## Training Paradigms
 - **Causal / Autoregressive (e.g., GPT):** Model p(x_t | x_{<t}) and used for free-form generation.
@@ -19,12 +30,61 @@ Large Language Models are neural models (usually transformer-based) trained on l
 - Subword tokenizers (Byte-Pair Encoding, WordPiece, SentencePiece) split text into manageable tokens balancing vocabulary size vs sequence length.
 - Tokenization affects model behavior; always use the tokenizer associated with a pretrained model.
 
+**Example using Hugging Face**:
+
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained('gpt2')
+text = "Hello, how are you?"
+tokens = tokenizer(text)
+print(tokens)
+print(tokenizer.convert_ids_to_tokens(tokens['input_ids']))
+# ['Hello', ',', 'Ġhow', 'Ġare', 'Ġyou', '?']
+```
+
+Notice the special prefix (`Ġ`) indicating a space, a peculiarity of GPT‑2's byte-level BPE.
+
 ## Capabilities & Use Cases
 - Text generation, summarization, translation, question answering, code generation, assistants, semantic search (via embeddings), and more.
 
+**Text generation example:**
+
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+tokenizer = AutoTokenizer.from_pretrained('gpt2')
+model = AutoModelForCausalLM.from_pretrained('gpt2')
+
+prompt = "Once upon a time"
+input_ids = tokenizer(prompt, return_tensors='pt').input_ids
+outputs = model.generate(input_ids, max_length=50, do_sample=True, temperature=0.7)
+print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+```
+
+This runs autoregressive generation: each new token conditions on previous ones.
+
 ## Fine-tuning vs In-Context Learning
 - **Fine-tuning:** Update model weights on a labeled dataset for a specific task; resource-intensive but often yields best task performance.
+
+  ```python
+  # simple finetune with HuggingFace Trainer
+  from transformers import AutoModelForSeq2SeqLM, Trainer, TrainingArguments
+  model = AutoModelForSeq2SeqLM.from_pretrained('t5-small')
+  # prepare dataset with input_ids and labels...
+  trainer = Trainer(model=model, args=TrainingArguments(output_dir='./out', num_train_epochs=3), train_dataset=train_ds)
+  trainer.train()
+  ```
+
 - **In-Context Learning / Prompting:** Provide examples in the prompt to guide behavior without weight updates. Powerful for few-shot tasks but has limits (context window size, brittleness).
+
+  ```python
+  prompt = "Translate English to French:\nEnglish: Hello\nFrench: Bonjour\nEnglish: How are you?\nFrench:"
+  # attach to generation as above
+  ```
+
+  The model sees examples in the prompt and continues the pattern.
 
 ## Scaling & Emergent Behavior
 - Larger models and larger pretraining datasets often yield qualitatively new capabilities (emergent behaviors). Scaling improves few-shot performance and robustness but increases compute and alignment challenges.

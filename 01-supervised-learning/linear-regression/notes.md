@@ -30,6 +30,38 @@ $$\text{Price} = 50,000 + 100 \times \text{SquareFootage}$$
 
 Here, $b = 50,000$ (base price) and $w_1 = 100$ (price increase per additional square foot). A 2,000 sq ft house would be predicted as: $50,000 + 100 \times 2,000 = 250,000$
 
+**Python demonstration:**
+
+```python
+import numpy as np
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+
+# synthetic data y=2x+1 with noise
+X = np.arange(0, 10).reshape(-1,1)
+y = 2*X.squeeze() + 1 + np.random.randn(10)*0.5
+
+model = LinearRegression().fit(X, y)
+print('Intercept', model.intercept_, 'Slope', model.coef_[0])
+
+# plot
+plt.scatter(X, y)
+plt.plot(X, model.predict(X), color='red')
+plt.title('Linear regression with sklearn')
+plt.show()
+
+# manual gradient descent
+w = 0.0
+b = 0.0
+lr = 0.01
+for epoch in range(1000):
+    preds = w * X.squeeze() + b
+    dw = -2*np.mean(X.squeeze() * (y - preds))
+    db = -2*np.mean(y - preds)
+    w -= lr * dw
+    b -= lr * db
+print('GD intercept', b, 'slope', w)
+```
 ## Multiple Linear Regression
 
 Real-world problems rarely depend on a single feature. Multiple linear regression extends the simple model to include multiple features, each with its own weight.

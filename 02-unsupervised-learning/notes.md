@@ -30,8 +30,16 @@ Group similar data points together.
 | **DBSCAN** | Arbitrary shapes, handles noise |
 
 **Applications:** Customer segmentation, image compression, document grouping
+**Mini example (K-Means):**
 
----
+```python
+from sklearn.cluster import KMeans
+import numpy as np
+
+X = np.vstack([np.random.randn(50,2)+[0,0], np.random.randn(50,2)+[5,5]])
+kmeans = KMeans(n_clusters=2, random_state=0).fit(X)
+print('Centroids:', kmeans.cluster_centers_)
+```---
 
 ### 2. [Dimensionality Reduction](./dimensionality-reduction/notes.md)
 Reduce the number of features while preserving information.

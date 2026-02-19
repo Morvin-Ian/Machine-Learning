@@ -8,6 +8,17 @@ An embedding is a dense, low-dimensional vector representation of a discrete obj
 - Convert categorical, textual, or high-dimensional inputs into continuous vectors usable by ML models.
 - Capture semantic relationships (e.g., `vec('king') - vec('man') + vec('woman') ≈ vec('queen')`).
 
+**Example arithmetic:** with pre-trained Word2Vec vectors you can demonstrate the classic analogy:
+
+```python
+from gensim.downloader import load
+model = load('word2vec-google-news-300')  # pre-trained vectors (~1.6GB)
+result = model.most_similar(positive=['woman', 'king'], negative=['man'], topn=1)
+print(result)  # [('queen', 0.7118)]
+```
+
+This shows the geometry: adding and subtracting vectors corresponds to semantic composition.
+
 ## How Embeddings Are Learned
 - **Supervised learning:** Train embeddings together with a downstream task (classification, recommendation).
 - **Self-supervised / contrastive:** Learn to pull positive pairs together and push negatives apart (e.g., SimCLR, triplet loss).
@@ -24,9 +35,24 @@ An embedding is a dense, low-dimensional vector representation of a discrete obj
 - **Dot product:** Often used inside models (e.g., attention scores). Normalize if necessary.
 
 ## Practical Uses
-- **Semantic search / retrieval:** Encode queries and documents, retrieve by nearest neighbors (ANN indexes like FAISS, Annoy, Milvus).
-- **Clustering & visualization:** Reduce embedding dimensionality (PCA/UMAP) for inspection.
-- **Recommendation:** User/item embeddings for collaborative filtering (matrix factorization, deep learning).
+- **Semantic search / retrieval:** Encode queries and documents, retrieve by nearest neighbors (ANN indexes like FAISS, Annoy, Milvus). For example, compute text embeddings with a pretrained model and then use cosine similarity to find the closest document.
+
+  ```python
+  from sentence_transformers import SentenceTransformer
+  import numpy as np
+
+  model = SentenceTransformer('all-MiniLM-L6-v2')
+  docs = ['cat video', 'machine learning tutorial', 'buy cheap shoes']
+  doc_embs = model.encode(docs)
+
+  query = 'how to train a neural net'
+  q_emb = model.encode([query])[0]
+  sims = np.dot(doc_embs, q_emb) / (np.linalg.norm(doc_embs, axis=1) * np.linalg.norm(q_emb))
+  print('closest doc:', docs[np.argmax(sims)])
+  ```
+
+- **Clustering & visualization:** Reduce embedding dimensionality (PCA/UMAP) for inspection. Visualize with scatter plots to see semantic groupings.
+- **Recommendation:** User/item embeddings for collaborative filtering (matrix factorization, deep learning). Example: multiply user and item vectors to predict ratings.
 - **Transfer learning:** Use pretrained embeddings as features for downstream tasks.
 
 ## Engineering Considerations
@@ -41,7 +67,22 @@ An embedding is a dense, low-dimensional vector representation of a discrete obj
 - Storing massive embedding corpora without compression or ANN can be costly.
 
 ## Quick Examples
-- Word2Vec / Skip-gram: Predict context words from a center word; produces static embeddings.
-- Contrastive loss: Learn `sim(a, b)` high for positives and low for negatives using InfoNCE or triplet losses.
+- **Word2Vec / Skip-gram:** Predict context words from a center word; produces static embeddings. Training example:
+
+  ```python
+  from gensim.models import Word2Vec
+  sentences = [['the', 'cat', 'sat'], ['the', 'dog', 'barked']]
+  w2v = Word2Vec(sentences, vector_size=50, window=2, min_count=1, workers=4)
+  print(w2v.wv['cat'])  # 50-dim vector
+  ```
+
+- **Contrastive loss:** Learn `sim(a, b)` high for positives and low for negatives using InfoNCE or triplet losses. Pseudocode:
+
+  ```python
+  # similarity = dot(normalize(a), normalize(b))
+  loss = -log( exp(sim(a, b_p)) / (exp(sim(a, b_p)) + sum(exp(sim(a, b_n)) for b_n in negatives)) )
+  ```
+
+- Sentence transformers / CLIP-style training: encode sentences and images jointly, then train with contrastive loss so matching pairs have high cosine similarity.
 
 ```

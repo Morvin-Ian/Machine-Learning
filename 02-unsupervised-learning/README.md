@@ -1,6 +1,6 @@
 # Unsupervised Learning
 
-Machine learning algorithms that discover patterns in unlabeled data.
+Machine learning algorithms that discover patterns in unlabeled data. Because there is no “correct” answer provided, evaluation is often subjective and relies on metrics like silhouette score, reconstruction error, or downstream task performance.
 
 ## Topics Covered
 

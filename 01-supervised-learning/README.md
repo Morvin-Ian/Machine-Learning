@@ -1,13 +1,15 @@
 # Supervised Learning — Start Here! 🚀
 
-Machine learning algorithms that learn from labeled training data.
+Machine learning algorithms that learn from labeled training data. In other words, the algorithm is given examples where the correct answer is already known and it tries to infer a rule that will generalize to unseen examples.
 
 ## Why Start Here?
 
 Supervised learning is the most intuitive introduction to ML:
-- You have **labeled data** (inputs with known correct outputs)
-- The goal is clear: **predict the label for new data**
-- Results are easy to evaluate
+- You have **labeled data** (inputs with known correct outputs) which makes the learning task well defined.
+- The goal is clear: **predict the label for new data**, whether that label is a continuous quantity (regression) or a category (classification).
+- Results are easy to evaluate with standard metrics like mean squared error or accuracy, so you can iterate quickly.
+
+Moreover, many more advanced techniques (neural nets, gradient boosting, etc.) are just supervised learners at their core, so mastering these basics pays dividends across the field.
 
 ## Topics Covered
 

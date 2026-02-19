@@ -1,5 +1,5 @@
 # Classification
-Classification is the task of predicting which of a set of classes (categories) an example belongs to. In binary classification, there are two classes (e.g., spam/not spam, positive/negative). In multi-class classification, there are more than two classes.
+Classification is the task of predicting which of a set of classes (categories) an example belongs to. Unlike regression, where the output is a continuous value (e.g., predicting a house price), classification maps each input to a discrete label. In binary classification, there are two classes (e.g., spam/not spam, positive/negative). In multi-class classification, there are more than two classes.
 
 ## Classification Thresholds
 Logistic regression models output **probability scores** between 0 and 1, not direct class labels. To convert these probabilities into actual predictions, we must choose a **classification threshold**. This threshold divides the probability scale into two regions: predictions above the threshold are classified as the positive class, and predictions below are classified as the negative class.
@@ -12,6 +12,27 @@ With threshold = 0.5: Both emails classified as spam
 With threshold = 0.95: Only Email A classified as spam
 
 **Key insight:** The choice of threshold depends on your business needs. A lower threshold catches more spam but increases false alarms. A higher threshold is more conservative and misses some spam.
+
+**Python example with sklearn:**
+
+```python
+from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
+import numpy as np
+
+y_true = np.array([0,1,0,1,1,0])
+y_prob = np.array([0.1,0.8,0.4,0.6,0.95,0.2])
+
+for thresh in [0.3, 0.5, 0.9]:
+    y_pred = (y_prob >= thresh).astype(int)
+    print(f"Threshold {thresh}")
+    print(confusion_matrix(y_true, y_pred))
+    print('precision', precision_score(y_true, y_pred))
+    print('recall', recall_score(y_true, y_pred))
+    print('f1', f1_score(y_true, y_pred))
+    print()
+```
+
+This code illustrates how predicted labels change as you vary the threshold and how metrics shift accordingly.
 
 
 ## Confusion Matrix
